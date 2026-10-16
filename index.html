@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>填词造句与听力</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--fs:16px;--blue:#1976d2;--line:#e6e8eb;--ok:#2e7d32;--bad:#c62828}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;background:#f5f5f5;color:#111;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+body.has-player{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+.top{position:sticky;top:0;z-index:100;background:#fff;padding-top:env(safe-area-inset-top);box-shadow:0 1px 0 var(--line)}
+.tab-bar{display:flex}
+.tab-btn{flex:1;padding:12px 4px 10px;border:none;background:none;font-size:15px;font-weight:500;color:#555;border-bottom:3px solid transparent}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.subbar,.toolbar{display:flex;gap:8px;align-items:center;padding:7px 12px;border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.subbar::-webkit-scrollbar,.toolbar::-webkit-scrollbar{display:none}
+.toolbar select,.toolbar input{flex:0 0 auto;min-width:0;max-width:46%;border:1px solid #d0d7de;border-radius:16px;background:#fff;padding:5px 10px;font-size:13px}
+.toolbar input{max-width:none;flex:1 1 120px}
+.pill{flex:0 0 auto;border:1px solid #d0d7de;background:#fff;border-radius:16px;padding:5px 12px;font-size:13px;white-space:nowrap}
+.pill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.seg{display:flex;flex:0 0 auto;border:1px solid #d0d7de;border-radius:16px;overflow:hidden}
+.seg button{border:none;background:#fff;padding:5px 12px;font-size:13px;white-space:nowrap}
+.seg button+button{border-left:1px solid #d0d7de}
+.seg button.on{background:var(--blue);color:#fff}
+main{padding:12px;max-width:820px;margin:0 auto}
+.meta{font-size:12px;color:#888;margin:0 2px 8px;display:flex;justify-content:space-between;gap:8px}
+.card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.08);font-size:var(--fs)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.card-title{font-size:16px;font-weight:600;color:var(--blue)}
+.card-title small{display:block;color:#777;font-weight:400;font-size:12px;margin-top:1px}
+.star{border:none;background:none;font-size:21px;color:#c2c2c2;padding:0 2px;line-height:1}
+.star.on{color:#f5a623}
+.vers{display:flex;gap:6px;overflow-x:auto;margin:4px 0 8px;scrollbar-width:none;align-items:center}
+.vers::-webkit-scrollbar{display:none}
+.ver{flex:0 0 auto;border:1px solid #cfd8dc;background:#fff;color:#455a64;border-radius:14px;padding:3px 10px;font-size:12px}
+.ver.on{background:#455a64;color:#fff;border-color:#455a64}
+.vnote{font-size:12px;color:#8d6e00;margin:-4px 0 8px}
+.same{font-size:12px;color:#888}
+.direction{font-size:.88em;color:#666;font-style:italic;margin-bottom:6px}
+.passage{line-height:1.7;background:#fafafa;border-radius:6px;padding:10px 12px}
+.passage p{margin:0 0 8px}
+.passage p:last-child{margin-bottom:0}
+.pno{font-size:11px;color:#999;font-weight:600;letter-spacing:.03em}
+.insert-marker{display:inline-block;background:#e3f2fd;color:var(--blue);border-radius:4px;padding:0 4px;font-weight:600;font-size:.85em}
+mark{background:#fff3a3;padding:0 1px}
+.zh{color:#444;font-size:.92em;line-height:1.65}
+.zhbox{background:#f6f8e8;border-radius:6px;padding:9px 12px;margin-top:8px;white-space:pre-wrap;line-height:1.65;font-size:.92em}
+.mini{border:1px solid #cfd8dc;background:#fff;color:#455a64;border-radius:14px;padding:3px 10px;font-size:12px}
+.mini.on{background:#eceff1}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.thumb{max-width:100%;border-radius:6px;margin-top:8px}
+.q{border-top:1px solid #f0f0f0;padding:10px 0 2px}
+.q-h{font-weight:500;line-height:1.55}
+.q-h .qn{color:var(--blue);font-weight:600;margin-right:4px}
+.insert-text{background:#e3f2fd;border-radius:6px;padding:6px 10px;margin:6px 0;font-size:.95em}
+.choices{list-style:none;margin:6px 0 0;padding:0}
+.choice{border:1px solid #e0e0e0;border-radius:8px;padding:8px 10px;margin:6px 0;line-height:1.5;display:flex;gap:8px}
+.choice .l{font-weight:600;color:#666}
+.choice.sel{border-color:var(--blue);background:#e3f2fd}
+.choice.ok{border-color:var(--ok);background:#e8f5e9}
+.choice.bad{border-color:var(--bad);background:#ffebee}
+.choice .ex{display:block;font-size:.86em;color:#555;margin-top:3px}
+.choice .cz{display:block;font-size:.88em;color:#666}
+.actions{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{border:none;background:var(--blue);color:#fff;border-radius:18px;padding:7px 16px;font-size:14px}
+.btn.ghost{background:#e3f2fd;color:var(--blue)}
+.btn.gray{background:#eceff1;color:#455a64}
+.result{font-size:14px;font-weight:600}
+.result.ok{color:var(--ok)}.result.bad{color:var(--bad)}
+.fill-text{line-height:2.1}
+.blank{display:inline-flex;align-items:baseline;white-space:nowrap}
+.blank input{border:none;border-bottom:2px solid #90caf9;background:#f3f8fe;padding:0 2px;font-size:inherit;text-align:left;border-radius:3px 3px 0 0;outline:none}
+.blank input.ok{border-bottom-color:var(--ok);background:#e8f5e9}
+.blank input.bad{border-bottom-color:var(--bad);background:#ffebee}
+.blank .n{font-size:10px;color:#999;margin-left:1px;vertical-align:super}
+.ansrow{font-size:.92em;line-height:1.6;border-top:1px dashed #eee;padding:5px 0}
+.ansrow b{color:var(--ok)}
+details{margin-top:8px}
+summary{cursor:pointer;color:#e65100;font-size:14px}
+.sent{border-top:1px solid #f0f0f0;padding:12px 0 4px}
+.lead{line-height:1.55}
+.lead .who{font-size:12px;color:#888;margin-right:4px}
+.scaffold{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;line-height:1.5}
+.slot{min-width:46px;min-height:32px;border:1.5px dashed #90caf9;border-radius:6px;padding:4px 8px;background:#f8fbff}
+.slot.filled{border-style:solid;background:#e3f2fd}
+.slot.ok{border-color:var(--ok);background:#e8f5e9}.slot.bad{border-color:var(--bad);background:#ffebee}
+.fixed{color:#333}
+.bank{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.token{border:1px solid #cfd8dc;background:#fff;border-radius:16px;padding:5px 12px}
+.token.used{opacity:.3}
+.answer{background:#e8f5e9;border-radius:6px;padding:8px 10px;margin-top:8px;line-height:1.6;font-size:.95em}
+.play{width:38px;height:38px;border-radius:50%;border:none;background:var(--blue);color:#fff;font-size:14px;flex-shrink:0}
+.audio-row{display:flex;align-items:center;gap:10px}
+.audio-row .time{font-size:12px;color:#888}
+.ts{margin-top:8px;line-height:1.6}
+.ts-line{padding:4px 6px;border-radius:6px;cursor:pointer}
+.ts-line.now{background:#fff3a3}
+.ts-line .sp{font-size:12px;color:#888;margin-right:4px}
+.qr{border-top:1px solid #f0f0f0;padding:10px 0 4px}
+.qr-head{display:flex;align-items:center;gap:8px}
+.word-row{border-top:1px solid #f0f0f0;padding:10px 0}
+.word-row:first-child{border-top:none}
+.word-top{display:flex;align-items:center;gap:8px}
+.word-top .w{font-weight:600;font-size:1.05em}
+.word-top .pos{font-size:12px;color:#888}
+.word-top .m{flex:1;min-width:0;color:#333;font-size:.95em}
+.word-row.known .w{color:#9e9e9e;text-decoration:line-through}
+.wbtn{border:1px solid #cfd8dc;background:#fff;border-radius:14px;padding:2px 9px;font-size:12px;flex-shrink:0}
+.wbtn.on{background:#455a64;color:#fff;border-color:#455a64}
+.wbtn.rev.on{background:#f5a623;border-color:#f5a623}
+.wdetail{font-size:.92em;line-height:1.6;color:#333;margin-top:6px;background:#fafafa;border-radius:6px;padding:8px 10px}
+.wdetail p{margin:0 0 6px}
+.flash{min-height:260px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer;user-select:none}
+.flash .big{font-size:2em;font-weight:600}
+.flash .hint{font-size:12px;color:#999;margin-top:14px}
+.flash-nav{display:flex;justify-content:space-between;gap:8px}
+.more{display:block;margin:4px auto 16px;border:1px solid #d0d7de;background:#fff;border-radius:18px;padding:8px 20px;font-size:14px}
+.empty{text-align:center;color:#888;padding:30px 0}
+.loading{text-align:center;color:#888;padding:40px 0}
+.player{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;z-index:200}
+.player .now{flex:1;min-width:0;font-size:13px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player button{border:none;background:#f0f2f4;border-radius:50%;width:40px;height:40px;font-size:15px;flex-shrink:0}
+.player button.main{background:var(--blue);color:#fff}
+.gear{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;border:none;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.2);font-size:18px;z-index:150}
+body.has-player .gear{display:none}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:250}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:86vh;overflow:auto;background:#f5f5f5;border-radius:14px 14px 0 0;z-index:260;padding:0 12px calc(20px + env(safe-area-inset-bottom))}
+.sheet-head{position:sticky;top:0;background:#f5f5f5;display:flex;justify-content:space-between;align-items:center;padding:12px 2px 8px}
+.sheet-head button{border:none;background:#e0e0e0;border-radius:50%;width:30px;height:30px}
+.set{background:#fff;border-radius:10px;padding:4px 14px;margin-bottom:12px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f0f0f0;font-size:15px}
+.set-row:last-child{border-bottom:none}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:400}
+.lightbox img{max-width:96vw;max-height:86vh;border-radius:6px;background:#fff}
+.back-top{position:fixed;right:14px;bottom:calc(72px + env(safe-area-inset-bottom));width:40px;height:40px;border-radius:50%;border:none;background:rgba(25,118,210,.9);color:#fff;font-size:18px;z-index:150}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="reading">阅读</button>
+    <button class="tab-btn" data-tab="listening">听力</button>
+    <button class="tab-btn" data-tab="sentence">造句</button>
+    <button class="tab-btn" data-tab="vocab">单词</button>
+  </div>
+  <div class="subbar" id="subbar"></div>
+  <div class="toolbar" id="toolbar"></div>
+</div>
+<main id="main"></main>
+<div class="player" id="player" hidden>
+  <button id="pBack" title="后退 5 秒">↺</button>
+  <button id="pPlay" class="main">▶</button>
+  <button id="pFwd" title="前进 5 秒">↻</button>
+  <div class="now" id="pNow"></div>
+  <button id="pSet" title="设置">⚙</button>
+</div>
+<button class="gear" id="gear" title="设置">⚙</button>
+<button class="back-top" id="backTop" hidden>↑</button>
+<script>
+'use strict';
+const KEY = 'toefl_practice_v1';
+const $ = s => document.querySelector(s);
+const LET = 'ABCDEFGH';
+function el(tag, props, kids) {
+  const e = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v);
+  }
+  (kids || []).forEach(c => c != null && c !== false && e.append(c));
+  return e;
+}
+const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ---------- state ----------
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+let saveTimer = null;
+function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { alert('保存失败：' + e.message); } }, 200); }
+const pref = (k, d) => S['pref_' + k] ?? d;
+function setPref(k, v) { S['pref_' + k] = v; save(); }
+function applyFont() { document.documentElement.style.setProperty('--fs', pref('fs', 16) + 'px'); }
+applyFont();
+// Per-version answer record: { a: answers, ck: checked, ok: all correct }
+const recKey = (sec, item, vi) => 'r|' + sec + '|' + item.id + '|' + vi;
+const rec = (sec, item, vi) => S[recKey(sec, item, vi)] || (S[recKey(sec, item, vi)] = {});
+const favKey = (sec, item) => 'f|' + sec + '|' + item.id;
+const isWrong = (sec, item) => item.versions.some((_, vi) => { const r = S[recKey(sec, item, vi)]; return r && r.ck && r.ok === false; });
+const isDone = (sec, item) => item.versions.some((_, vi) => { const r = S[recKey(sec, item, vi)]; return r && r.ck; });
+
+// ---------- sections ----------
+const SECTIONS = {
+  reading: [['reading_fill_in', '填词'], ['reading_short', '短篇'], ['reading_long', '长篇'], ['reading_academic', '学术']],
+  listening: [['listening_quick_response', '选回答'], ['listening_conversation', '对话'], ['listening_announcement', '公告'], ['listening_lecture', '讲座']],
+  sentence: [['writing_sentence', '造句']],
+  vocab: [['vocab', '单词']]
+};
+// sections whose Wofo items are shown as one card per mock (several questions)
+const GROUPED = { writing_sentence: 10, listening_quick_response: 15 };
+const DATA = {}, loading = {};
+async function load(sec) {
+  if (DATA[sec]) return DATA[sec];
+  if (!loading[sec]) loading[sec] = fetch('data/' + sec + '.json').then(r => { if (!r.ok) throw Error(r.status); return r.json(); }).then(d => {
+    const n = {}; (d.items || []).forEach(it => { if (it.mock) it.k = n[it.mock] = (n[it.mock] || 0) + 1; });
+    return (DATA[sec] = d);
+  });
+  return loading[sec];
+}
+
+let tab = pref('tab', 'reading');
+const V = {};   // per-section view state
+function vs(sec) { return V[sec] || (V[sec] = { scope: 'wofo', cat: 'all', fav: false, wrong: false, start: 0, shown: 0, ver: {} }); }
+const curSec = () => (SECTIONS[tab].find(([s]) => s === pref('sec_' + tab)) || SECTIONS[tab][0])[0];
+
+function units(sec) {
+  const v = vs(sec), d = DATA[sec];
+  let items = d.items.filter(it => (v.scope === 'wofo' ? it.src === 'Wofo' : it.src === 'Koala'))
+    .filter(it => v.cat === 'all' || it.cat === v.cat)
+    .filter(it => !v.fav || S[favKey(sec, it)])
+    .filter(it => !v.wrong || isWrong(sec, it));
+  const size = GROUPED[sec];
+  if (!size) return items.map(it => ({ id: it.id, items: [it], title: titleOf(sec, it), sub: subOf(sec, it), mock: it.mock }));
+  const out = [];
+  if (v.scope === 'wofo') {
+    const by = new Map();
+    items.forEach(it => { if (!by.has(it.mock)) by.set(it.mock, []); by.get(it.mock).push(it); });
+    by.forEach((its, m) => out.push({ id: 'm' + m, items: its, title: 'M' + m, sub: its.length + ' 题', mock: m }));
+  } else {
+    for (let i = 0; i < items.length; i += size) out.push({ id: 'k' + i, items: items.slice(i, i + size), title: 'Koala 新题 ' + (i + 1) + '–' + Math.min(i + size, items.length), sub: '' });
+  }
+  return out;
+}
+const GENERIC = { listening_conversation: '对话', listening_announcement: '公告', listening_lecture: '讲座' };
+function titleOf(sec, it) {
+  const v0 = it.versions[0];
+  let name = v0.articleTitle || it.title || cleanMedia(v0.mediaTitle) || '';
+  if (GENERIC[sec] && (!name || /^(a |an )?(conversation|announcement|talk|lecture)$/i.test(name))) name = GENERIC[sec] + (it.k ? ' ' + it.k : '');
+  else if (GENERIC[sec] && it.k) name = GENERIC[sec] + ' ' + it.k + ' · ' + name;
+  return (it.mock ? 'M' + it.mock + ' · ' : '') + name;
+}
+function subOf(sec, it) { return [it.cat, it.sub].filter(Boolean).join(' · '); }
+function cleanMedia(t) { return String(t || '').replace(/^Listen to (an?|the)\s*/i, '').replace(/\.$/, ''); }
+
+// ---------- toolbar ----------
+function buildBars() {
+  const sub = $('#subbar'), bar = $('#toolbar');
+  sub.replaceChildren(); bar.replaceChildren();
+  const list = SECTIONS[tab];
+  if (list.length > 1) {
+    const seg = el('div', { class: 'seg' });
+    list.forEach(([s, n]) => seg.append(el('button', { class: s === curSec() ? 'on' : '', text: n, onclick: () => { setPref('sec_' + tab, s); render(); } })));
+    sub.append(seg);
+  }
+  sub.hidden = list.length < 2;
+  const sec = curSec();
+  const d = DATA[sec]; if (!d) return;
+  if (sec === 'vocab') return vocabBar(bar);
+  const v = vs(sec);
+  const nW = d.items.filter(i => i.src === 'Wofo').length, nK = d.items.length - nW;
+  const scope = el('select', { onchange: () => { v.scope = scope.value; v.cat = 'all'; v.start = 0; render(); } }, [
+    el('option', { value: 'wofo', text: 'Wofo (' + nW + ')', selected: v.scope === 'wofo' }), el('option', { value: 'koala', text: 'Koala 新题 (' + nK + ')', selected: v.scope === 'koala' })]);
+  const cats = [...new Set(d.items.filter(i => (v.scope === 'wofo') === (i.src === 'Wofo')).map(i => i.cat))];
+  const cat = el('select', { onchange: () => { v.cat = cat.value; v.start = 0; render(); } }, [el('option', { value: 'all', text: '全部分类' }),
+    ...cats.map(c => el('option', { value: c, text: c, selected: v.cat === c }))]);
+  const us = units(sec);
+  const jump = el('select', { onchange: () => { v.start = +jump.value; render(); } }, us.map((u, i) => el('option', { value: i, text: u.title.slice(0, 30), selected: i === v.start })));
+  bar.append(scope, cat, jump,
+    el('button', { class: 'pill' + (v.fav ? ' on' : ''), text: '☆ 收藏', onclick: () => { v.fav = !v.fav; v.start = 0; render(); } }),
+    el('button', { class: 'pill' + (v.wrong ? ' on' : ''), text: '✗ 错题', onclick: () => { v.wrong = !v.wrong; v.start = 0; render(); } }));
+}
+
+// ---------- render list ----------
+const PAGE = 6;
+let observer = null;
+async function render() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const sec = curSec(), main = $('#main');
+  Player.stop();
+  document.body.classList.toggle('has-player', tab === 'listening');
+  $('#player').hidden = tab !== 'listening';
+  if (!DATA[sec]) { buildBars(); main.replaceChildren(el('div', { class: 'loading', text: '正在加载题库…' })); try { await load(sec); } catch (e) { main.replaceChildren(el('div', { class: 'empty', text: '加载失败，请检查网络后重试。' })); return; } if (sec !== curSec()) return; }
+  buildBars();
+  if (sec === 'vocab') return renderVocab();
+  const v = vs(sec), us = units(sec);
+  if (v.start >= us.length) v.start = 0;
+  const all = DATA[sec].items.filter(i => (v.scope === 'wofo') === (i.src === 'Wofo'));
+  const done = all.filter(i => isDone(sec, i)).length, wrong = all.filter(i => isWrong(sec, i)).length;
+  const meta = el('div', { class: 'meta' }, [el('span', { text: us.length + (GROUPED[sec] ? ' 组' : ' 篇') + (v.fav ? '（收藏）' : '') + (v.wrong ? '（错题）' : '') }), el('span', { text: '已做 ' + done + ' / ' + all.length + ' · 错 ' + wrong })]);
+  main.replaceChildren(meta);
+  if (v.start > 0) main.append(el('button', { class: 'more', text: '↑ 显示前面 ' + v.start + ' 组', onclick: () => { v.start = 0; render(); } }));
+  const list = el('div'); main.append(list);
+  if (!us.length) { main.append(el('p', { class: 'empty', text: v.wrong ? '没有错题。' : v.fav ? '还没有收藏。点卡片右上角 ☆ 收藏。' : '这里没有题。' })); return; }
+  let next = v.start;
+  const sentinel = el('div', { style: 'height:1px' });
+  function more() {
+    const end = Math.min(us.length, next + PAGE);
+    for (; next < end; next++) list.append(unitCard(sec, us[next]));
+    if (next >= us.length) { observer && observer.disconnect(); sentinel.remove(); }
+  }
+  main.append(sentinel);
+  if (observer) observer.disconnect();
+  observer = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, { rootMargin: '600px' });
+  more(); if (next < us.length) observer.observe(sentinel);
+  window.scrollTo({ top: 0 });
+}
+
+function unitCard(sec, u) {
+  const card = el('div', { class: 'card' });
+  const single = u.items.length === 1 && !GROUPED[sec];
+  const it0 = u.items[0];
+  const head = el('div', { class: 'card-header' }, [el('div', { class: 'card-title' }, [document.createTextNode(u.title), u.sub ? el('small', { text: u.sub }) : null])]);
+  if (single) head.append(starBtn(favKey(sec, it0)));
+  card.append(head);
+  const body = el('div'); card.append(body);
+  if (single) {
+    const draw = () => body.replaceChildren(...versionBar(sec, it0, draw), RENDER[sec](sec, it0, vs(sec).ver[it0.id] || 0));
+    draw();
+  } else {
+    const R = sec === 'writing_sentence' ? sentenceRow : qrRow;
+    u.items.forEach((it, k) => { const box = el('div'); const draw = () => box.replaceChildren(R(sec, it, vs(sec).ver[it.id] || 0, k, draw)); draw(); body.append(box); });
+  }
+  return card;
+}
+function versionBar(sec, it, redraw) {
+  const out = [], vi = vs(sec).ver[it.id] || 0;
+  if (it.versions.length > 1) {
+    const bar = el('div', { class: 'vers' });
+    it.versions.forEach((ver, k) => bar.append(el('button', { class: 'ver' + (k === vi ? ' on' : ''), text: ver.label, title: (ver.dates || []).join(' / '), onclick: () => { Player.stop(); vs(sec).ver[it.id] = k; redraw(); } })));
+    out.push(bar);
+    if (it.versions[vi].note) out.push(el('div', { class: 'vnote', text: '和 Wofo 原题：' + it.versions[vi].note }));
+  }
+  if (it.koalaSame && it.koalaSame.length && vi === 0) out.push(el('div', { class: 'same', text: 'Koala 同题出现：' + it.koalaSame.filter(Boolean).slice(0, 4).join('、') + (it.koalaSame.length > 4 ? ' 等 ' + it.koalaSame.length + ' 次' : '') }));
+  return out;
+}
+function starBtn(key) {
+  const b = el('button', { class: 'star', title: '收藏' });
+  const paint = () => { b.textContent = S[key] ? '★' : '☆'; b.classList.toggle('on', !!S[key]); };
+  b.onclick = () => { if (S[key]) delete S[key]; else S[key] = true; paint(); save(); };
+  paint(); return b;
+}
+function toggleBox(label, make, startOpen) {
+  let box = null;
+  const b = el('button', { class: 'mini', text: label });
+  const holder = el('div');
+  const open = () => { box = make(); holder.replaceChildren(box); b.classList.add('on'); };
+  b.onclick = () => { if (box) { box = null; holder.replaceChildren(); b.classList.remove('on'); } else open(); };
+  if (startOpen) open();
+  return [b, holder];
+}
+
+// ---------- choice questions (reading + listening) ----------
+function questionsBlock(sec, it, vi, qs, ver) {
+  const r = rec(sec, it, vi); r.a = r.a || {};
+  const wrap = el('div');
+  const result = el('span', { class: 'result' });
+  const gradable = q => q.choices.filter(c => c.correct).length === 1 && !q.incompleteOptions;
+  const paint = () => {
+    wrap.querySelectorAll('.choice').forEach(li => {
+      const qi = +li.dataset.q, ci = +li.dataset.c, q = qs[qi], c = q.choices[ci];
+      li.classList.toggle('sel', !r.ck && r.a[qi] === ci);
+      li.classList.toggle('ok', !!r.ck && !!c.correct);
+      li.classList.toggle('bad', !!r.ck && r.a[qi] === ci && !c.correct);
+      li.querySelectorAll('.ex,.cz').forEach(n => { n.hidden = !r.ck; });
+    });
+    if (r.ck) {
+      const n = qs.filter((q, qi) => gradable(q) && q.choices[r.a[qi]] && q.choices[r.a[qi]].correct).length, tot = qs.filter(gradable).length;
+      result.textContent = n + ' / ' + tot + ' 正确'; result.className = 'result ' + (n === tot ? 'ok' : 'bad');
+    } else { result.textContent = ''; }
+    check.textContent = r.ck ? '重做' : '检查';
+  };
+  qs.forEach((q, qi) => {
+    const qd = el('div', { class: 'q' });
+    qd.append(el('div', { class: 'q-h' }, [q.noNum ? null : el('span', { class: 'qn', text: 'Q' + (qi + 1) }), document.createTextNode(q.promptText || '')]));
+    if (q.promptTextZh && pref('zh', true)) qd.append(el('div', { class: 'zh', text: q.promptTextZh }));
+    if (q.insertSentenceText) qd.append(el('div', { class: 'insert-text', text: q.insertSentenceText }));
+    if (q.sourceParagraphs && q.sourceParagraphs.length) {
+      const [b, h] = toggleBox('看本题对应段落', () => paragraphs(q.sourceParagraphs, q));
+      qd.append(el('div', { class: 'tools' }, [b]), h);
+    }
+    if (!gradable(q)) qd.append(el('div', { class: 'same', text: '原题选项不完整，这题不判分。' }));
+    const ul = el('ul', { class: 'choices' });
+    q.choices.forEach((c, ci) => {
+      const li = el('li', { class: 'choice', 'data-q': qi, 'data-c': ci, onclick: () => { if (r.ck) return; r.a[qi] = ci; save(); paint(); } }, [
+        el('span', { class: 'l', text: LET[ci] + '.' }),
+        el('span', {}, [document.createTextNode(c.label || ''), c.labelZh ? el('span', { class: 'cz', text: c.labelZh }) : null, c.explanationZh ? el('span', { class: 'ex', text: c.explanationZh }) : null])]);
+      ul.append(li);
+    });
+    qd.append(ul); wrap.append(qd);
+  });
+  const check = el('button', { class: 'btn', onclick: () => {
+    if (r.ck) { r.ck = false; r.a = {}; delete r.ok; }
+    else {
+      if (qs.some((q, qi) => gradable(q) && r.a[qi] === undefined) && !confirm('还有题没选，确定检查吗？')) return;
+      r.ck = true; r.ok = qs.every((q, qi) => !gradable(q) || (q.choices[r.a[qi]] && q.choices[r.a[qi]].correct));
+    }
+    save(); paint();
+  } });
+  wrap.append(el('div', { class: 'actions' }, [check, result]));
+  paint();
+  return wrap;
+}
+function paragraphs(list, q) {
+  const box = el('div', { class: 'passage' });
+  list.forEach((p, pi) => {
+    let h = esc(p).replace(/\{\{MARK:(\d+)\}\}/g, '<span class="insert-marker">[$1]</span>');
+    const terms = [];
+    (q ? [q] : []).forEach(x => { if (x.highlightTerm && (x.highlightParagraphIndex == null || x.highlightParagraphIndex === pi)) terms.push(x.highlightTerm); });
+    if (q === undefined && list._hl) (list._hl[pi] || []).forEach(t => terms.push(t));
+    terms.forEach(t => { const re = new RegExp('(' + esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i'); h = h.replace(re, '<mark>$1</mark>'); });
+    box.append(el('p', { html: (list.length > 1 ? '<span class="pno">P' + (pi + 1) + '</span> ' : '') + h }));
+  });
+  return box;
+}
+function textBlock(text) {
+  const box = el('div', { class: 'passage' });
+  String(text || '').split(/\n+/).map(s => s.trim()).filter(Boolean).forEach(line => box.append(el('p', { text: line })));
+  return box;
+}
+
+// ---------- reading ----------
+function renderReading(sec, it, vi) {
+  const ver = it.versions[vi], out = el('div');
+  if (ver.directionText) out.append(el('div', { class: 'direction', text: ver.directionText }));
+  if (ver.paragraphs && ver.paragraphs.length) {
+    const ps = ver.paragraphs.slice();
+    ps._hl = {};
+    (ver.questions || []).forEach(q => { if (q.highlightTerm && q.highlightParagraphIndex != null && !q.sourceParagraphs) (ps._hl[q.highlightParagraphIndex] = ps._hl[q.highlightParagraphIndex] || []).push(q.highlightTerm); });
+    out.append(paragraphs(ps));
+  } else if (ver.imageText) out.append(textBlock(ver.imageText));
+  const tools = el('div', { class: 'tools' }), holders = [];
+  const zh = ver.imageTextZh || (ver.paragraphsZh || []).join('\n\n');
+  if (zh) { const [b, h] = toggleBox('全文翻译', () => el('div', { class: 'zhbox', text: zh })); tools.append(b); holders.push(h); }
+  if (ver.imageUrl) { const [b, h] = toggleBox('看原图', () => el('img', { class: 'thumb', src: ver.imageUrl, loading: 'lazy', onclick: e => lightbox(e.target.src) })); tools.append(b); holders.push(h); }
+  if (tools.childNodes.length) out.append(tools, ...holders);
+  out.append(questionsBlock(sec, it, vi, ver.questions || [], ver));
+  return out;
+}
+
+// ---------- fill in the blanks ----------
+function renderFill(sec, it, vi) {
+  const ver = it.versions[vi], r = rec(sec, it, vi); r.a = r.a || {};
+  const text = ver.stimulusText || '', slots = (ver.slots || []).map((s, i) => ({ ...s, i, full: (s.visiblePrefix || '') + (s.acceptedAnswer || '') }));
+  // Locate each blank in the passage in order; fall back to the recorded character offset.
+  const low = text.toLowerCase(); let from = 0;
+  slots.forEach(s => {
+    let p = low.indexOf(s.full.toLowerCase(), from);
+    if (p < 0 && Number.isInteger(s._position)) p = s._position;
+    s.pos = p; if (p >= 0) from = p + s.full.length;
+  });
+  const box = el('div', { class: 'passage fill-text' }), inputs = [];
+  let cur = 0;
+  slots.filter(s => s.pos >= 0).sort((a, b) => a.pos - b.pos).forEach(s => {
+    if (s.pos > cur) box.append(document.createTextNode(text.slice(cur, s.pos)));
+    const inp = el('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': '第 ' + (s.i + 1) + ' 空', maxlength: s.acceptedAnswer.length + 3 });
+    inp.style.width = Math.max(2, s.acceptedAnswer.length + 1) * 0.62 + 'em';
+    inp.value = r.a[s.i] || '';
+    inp.addEventListener('input', () => { r.a[s.i] = inp.value; if (r.ck) { r.ck = false; delete r.ok; paint(); } save(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const k = inputs.indexOf(inp); if (inputs[k + 1]) inputs[k + 1].focus(); else inp.blur(); } });
+    inputs.push(inp); inp._slot = s;
+    box.append(el('span', { class: 'blank' }, [document.createTextNode(s.visiblePrefix || ''), inp, el('span', { class: 'n', text: s.i + 1 })]));
+    cur = s.pos + s.full.length;
+  });
+  if (cur < text.length) box.append(document.createTextNode(text.slice(cur)));
+  const out = el('div', {}, [box]);
+  const result = el('span', { class: 'result' });
+  const answers = el('div');
+  const ok = s => String(r.a[s.i] || '').trim().toLowerCase() === s.acceptedAnswer.toLowerCase();
+  function paint() {
+    inputs.forEach(inp => { inp.classList.toggle('ok', !!r.ck && ok(inp._slot)); inp.classList.toggle('bad', !!r.ck && !ok(inp._slot)); });
+    if (r.ck) {
+      const n = slots.filter(ok).length; result.textContent = n + ' / ' + slots.length + ' 正确'; result.className = 'result ' + (n === slots.length ? 'ok' : 'bad');
+      answers.replaceChildren(...slots.map(s => el('div', { class: 'ansrow', html: (s.i + 1) + '. ' + esc(s.visiblePrefix) + '<b>' + esc(s.acceptedAnswer) + '</b>' + (ok(s) ? ' ✓' : ' ✗ 你填：' + esc(r.a[s.i] || '（空）')) + (s.translation ? '　<span class="zh">' + esc(s.translation) + '</span>' : '') + (s.explanation ? '<div class="zh">' + esc(s.explanation) + '</div>' : '') })));
+    } else { result.textContent = ''; answers.replaceChildren(); }
+    check.textContent = r.ck ? '重做' : '检查';
+  }
+  const check = el('button', { class: 'btn', onclick: () => {
+    if (r.ck) { r.ck = false; delete r.ok; r.a = {}; inputs.forEach(i => { i.value = ''; }); }
+    else { r.ck = true; r.ok = slots.every(ok); }
+    save(); paint();
+  } });
+  const tools = el('div', { class: 'tools' }), holders = [];
+  if (ver.stimulusTextZh) { const [b, h] = toggleBox('全文翻译', () => el('div', { class: 'zhbox', text: ver.stimulusTextZh })); tools.append(b); holders.push(h); }
+  if (ver.explanation) { const [b, h] = toggleBox('整体解析', () => el('div', { class: 'zhbox', text: ver.explanation })); tools.append(b); holders.push(h); }
+  out.append(el('div', { class: 'actions' }, [check, result]), answers, tools, ...holders);
+  paint();
+  return out;
+}
+
+// ---------- sentence building ----------
+function sentenceRow(sec, it, vi, k, redraw) {
+  const ver = it.versions[vi], r = rec(sec, it, vi); r.a = Array.isArray(r.a) ? r.a : [];
+  const row = el('div', { class: 'sent' });
+  const head = el('div', { class: 'card-header' }, [el('div', { class: 'lead' }, [el('span', { class: 'who', text: (k + 1) + '.' }), document.createTextNode(ver.leadText || '')]), starBtn(favKey(sec, it))]);
+  row.append(head);
+  if (ver.leadTextZh && pref('zh', true)) row.append(el('div', { class: 'zh', text: ver.leadTextZh }));
+  row.append(...versionBar(sec, it, redraw));
+  const order = ver.correctOrder || [], n = ver.numBlanks || order.length;
+  const scaffold = el('div', { class: 'scaffold' }), slots = [];
+  const parts = ver.scaffold ? ver.scaffold.split(/(\[\[BLANK:\d+:\d+:\d+\]\])/) : Array.from({ length: n }, () => '[[BLANK:0:0:0]]');
+  parts.forEach(p => {
+    if (/^\[\[BLANK/.test(p)) { const i = slots.length, s = el('div', { class: 'slot', onclick: () => { if (r.ck || !r.a[i]) return; r.a[i] = ''; save(); paint(); } }); slots.push(s); scaffold.append(s); }
+    else if (p.trim()) scaffold.append(el('span', { class: 'fixed', text: p.trim() }));
+  });
+  const tokens = (ver.tokens || []).concat(ver.distractors || []);
+  const bank = el('div', { class: 'bank' }), chips = tokens.map((t, ti) => el('button', { class: 'token', text: t, onclick: () => {
+    if (r.ck) return; const i = slots.findIndex((_, si) => !r.a[si]); if (i < 0) return; r.a[i] = t; save(); paint();
+  } }));
+  bank.append(...chips);
+  const result = el('span', { class: 'result' }), ans = el('div');
+  const correctAt = i => r.a[i] === order[i];
+  function paint() {
+    slots.forEach((s, i) => { s.textContent = r.a[i] || ''; s.className = 'slot' + (r.a[i] ? ' filled' : '') + (r.ck ? (correctAt(i) ? ' ok' : ' bad') : ''); });
+    const used = {}; r.a.forEach(t => { if (t) used[t] = (used[t] || 0) + 1; });
+    chips.forEach(c => { const t = c.textContent; c.classList.toggle('used', used[t] > 0); if (used[t] > 0) used[t]--; });
+    if (r.ck) {
+      result.textContent = r.ok ? '✓ 正确' : '✗ 错误'; result.className = 'result ' + (r.ok ? 'ok' : 'bad');
+      ans.replaceChildren(el('div', { class: 'answer' }, [el('div', { html: '<b>' + esc(ver.correctSentence) + '</b>' }), ver.translationZh ? el('div', { class: 'zh', text: ver.translationZh }) : null,
+        ver.sentenceType ? el('div', { class: 'zh', text: '句型：' + ver.sentenceType }) : null, ver.explanation ? el('div', { class: 'zh', text: ver.explanation }) : null]));
+    } else { result.textContent = ''; ans.replaceChildren(); }
+    check.textContent = r.ck ? '重做' : '检查';
+  }
+  const check = el('button', { class: 'btn', onclick: () => {
+    if (r.ck) { r.ck = false; delete r.ok; r.a = []; }
+    else { if (slots.some((_, i) => !r.a[i])) return; r.ck = true; r.ok = slots.every((_, i) => correctAt(i)); }
+    save(); paint();
+  } });
+  const [hb, hh] = toggleBox('看答案', () => el('div', { class: 'answer', html: '<b>' + esc(ver.correctSentence) + '</b>' + (ver.translationZh ? '<div class="zh">' + esc(ver.translationZh) + '</div>' : '') }));
+  row.append(scaffold, bank, el('div', { class: 'actions' }, [check, el('button', { class: 'btn gray', text: '清空', onclick: () => { r.a = []; r.ck = false; delete r.ok; save(); paint(); } }), hb, result]), hh, ans);
+  paint();
+  return row;
+}
+
+// ---------- listening ----------
+function audioRow(id, src, label, clip, sentences, tsBox) {
+  const btn = el('button', { class: 'play', text: '▶', onclick: () => Player.toggle(id, src, label, clip, sentences, tsBox, btn) });
+  btn.dataset.pid = id;
+  return el('div', { class: 'audio-row' }, [btn, el('span', { class: 'time', text: label })]);
+}
+function transcriptBox(id, src, label, ver, clip) {
+  const sents = ver.transcriptSentences && ver.transcriptSentences.length ? ver.transcriptSentences : [{ text: ver.transcript, textZh: ver.transcriptZh }];
+  const box = el('div', { class: 'ts' });
+  sents.forEach((s, i) => {
+    const line = el('div', { class: 'ts-line', 'data-i': i, onclick: () => { if (s.startTime != null) Player.seek(id, src, label, clip, sents, box, s.startTime); } },
+      [s.speaker && s.speaker !== 'Narrator' ? el('span', { class: 'sp', text: s.speaker + ':' }) : null, document.createTextNode(s.text || ''),
+        s.textZh && pref('zh', true) ? el('div', { class: 'zh', text: s.textZh }) : null]);
+    box.append(line);
+  });
+  return { box, sents };
+}
+function renderListening(sec, it, vi) {
+  const ver = it.versions[vi], out = el('div'), id = sec + it.id + ':' + vi;
+  let ts = null;
+  const label = titleOf(sec, it);
+  const tsHolder = el('div');
+  const getTs = () => { if (!ts) { ts = transcriptBox(id, ver.audioUrl, label, ver); if (Player.id === id) { Player.sents = ts.sents; Player.box = ts.box; } } return ts; };
+  const [tb, th] = toggleBox('听力原文', () => { const t = getTs(); return t.box; });
+  out.append(audioRow(id, ver.audioUrl, '播放录音', null, null, null), el('div', { class: 'tools' }, [tb]), th);
+  // the row's play button must know about the transcript once it exists, so resolve lazily
+  out.querySelector('.play').onclick = e => { const t = ts; Player.toggle(id, ver.audioUrl, label, null, t && t.sents, t && t.box, e.currentTarget); };
+  out.append(questionsBlock(sec, it, vi, ver.questions || [], ver));
+  return out;
+}
+function qrRow(sec, it, vi, k, redraw) {
+  const ver = it.versions[vi], id = sec + it.id + ':' + vi, row = el('div', { class: 'qr' });
+  const clip = ver.clip && ver.clip[0] != null ? ver.clip : null;
+  const play = el('button', { class: 'play', text: '▶' });
+  play.onclick = () => Player.toggle(id, ver.audioUrl, (it.mock ? 'M' + it.mock + ' · ' : '') + 'Q' + (k + 1), clip, null, null, play);
+  play.dataset.pid = id;
+  row.append(el('div', { class: 'qr-head' }, [el('span', { class: 'card-title', text: 'Q' + (k + 1) }), play, el('span', { style: 'flex:1' }), starBtn(favKey(sec, it))]));
+  row.append(...versionBar(sec, it, redraw));
+  const [tb, th] = toggleBox('原文', () => el('div', { class: 'ts' }, [el('div', { text: ver.transcript || '' }), ver.transcriptZh && pref('zh', true) ? el('div', { class: 'zh', text: ver.transcriptZh }) : null]));
+  row.append(el('div', { class: 'tools' }, [tb]), th);
+  const spoken = norm(ver.promptText) === norm(ver.transcript);
+  const q = { promptText: spoken ? '听录音，选最佳回答' : ver.promptText, promptTextZh: spoken ? '' : ver.promptTextZh, choices: ver.choices || [], noNum: true };
+  row.append(questionsBlock(sec, it, vi, [q], ver));
+  return row;
+}
+
+const RENDER = {
+  reading_fill_in: renderFill, reading_short: renderReading, reading_long: renderReading, reading_academic: renderReading,
+  listening_conversation: renderListening, listening_announcement: renderListening, listening_lecture: renderListening
+};
+
+// ---------- player ----------
+const audio = new Audio(); audio.preload = 'auto';
+const Player = {
+  id: null, clip: null, sents: null, box: null, btn: null,
+  toggle(id, src, label, clip, sents, box, btn) {
+    if (this.id === id && !audio.paused) { audio.pause(); return this.paint(); }
+    if (this.id === id && audio.src) { audio.play(); return this.paint(); }
+    this.open(id, src, label, clip, sents, box, btn);
+    audio.currentTime = clip ? clip[0] : 0;
+    audio.play().catch(() => {}); this.paint();
+  },
+  open(id, src, label, clip, sents, box, btn) {
+    if (this.btn && this.btn !== btn) this.btn.textContent = '▶';
+    this.id = id; this.clip = clip; this.sents = sents; this.box = box; this.btn = btn || document.querySelector('[data-pid="' + CSS.escape(id) + '"]'); this.label = label;
+    if (audio.src !== src) audio.src = src;
+    audio.playbackRate = +pref('rate', 1);
+  },
+  seek(id, src, label, clip, sents, box, t) {
+    if (this.id !== id) this.open(id, src, label, clip, sents, box, null);
+    this.sents = sents; this.box = box;
+    audio.currentTime = t; audio.play().catch(() => {}); this.tick();
+  },
+  stop() { audio.pause(); if (this.btn) this.btn.textContent = '▶'; this.id = null; this.btn = null; this.paint(); },
+  paint() {
+    const playing = this.id && !audio.paused;
+    $('#pPlay').textContent = playing ? '⏸' : '▶';
+    if (this.btn) this.btn.textContent = playing ? '⏸' : '▶';
+    const t = audio.currentTime || 0, fmt = x => Math.floor(x / 60) + ':' + String(Math.floor(x % 60)).padStart(2, '0');
+    $('#pNow').textContent = this.id ? (this.label || '') + ' · ' + fmt(t - (this.clip ? this.clip[0] : 0)) : '点题目旁的 ▶ 播放；原文里点哪句就从哪句开始';
+  },
+  tick() {
+    if (this.clip && this.clip[1] != null && audio.currentTime >= this.clip[1]) { audio.pause(); audio.currentTime = this.clip[0]; }
+    if (this.sents && this.box) {
+      const t = audio.currentTime;
+      this.box.querySelectorAll('.ts-line').forEach(l => { const s = this.sents[+l.dataset.i]; l.classList.toggle('now', s.startTime != null && t >= s.startTime && t < (s.endTime ?? s.startTime + 3)); });
+    }
+    this.paint();
+  }
+};
+audio.addEventListener('timeupdate', () => Player.tick());
+audio.addEventListener('ended', () => Player.paint());
+audio.addEventListener('pause', () => Player.paint());
+audio.addEventListener('error', () => { if (Player.id) $('#pNow').textContent = '音频加载失败，请检查网络'; });
+$('#pPlay').onclick = () => { if (Player.id) { audio.paused ? audio.play() : audio.pause(); Player.paint(); } };
+$('#pBack').onclick = () => { if (Player.id) audio.currentTime = Math.max(Player.clip ? Player.clip[0] : 0, audio.currentTime - 5); };
+$('#pFwd').onclick = () => { if (Player.id) audio.currentTime = audio.currentTime + 5; };
+
+// ---------- vocab ----------
+const VV = { mode: 'list', cat: 'all', status: 'all', q: '', shown: 60, flash: 0, back: false, order: null };
+const wk = w => 'w|' + w.id;
+const wst = w => S[wk(w)] || {};
+function setW(w, patch) { const r = { ...wst(w), ...patch }; Object.keys(r).forEach(k => { if (!r[k]) delete r[k]; }); if (Object.keys(r).length) S[wk(w)] = r; else delete S[wk(w)]; save(); }
+function vocabBar(bar) {
+  const seg = el('div', { class: 'seg' });
+  [['list', '单词表'], ['spell', '拼写'], ['flash', '闪卡']].forEach(([m, n]) => seg.append(el('button', { class: VV.mode === m ? 'on' : '', text: n, onclick: () => { VV.mode = m; VV.shown = 60; VV.flash = 0; VV.back = false; render(); } })));
+  const d = DATA.vocab;
+  const cat = el('select', { onchange: () => { VV.cat = cat.value; VV.shown = 60; VV.flash = 0; VV.order = null; renderVocab(); } }, [el('option', { value: 'all', text: '全部类别' }), ...d.categories.map(c => el('option', { value: c, text: c, selected: VV.cat === c }))]);
+  const st = el('select', { onchange: () => { VV.status = st.value; VV.shown = 60; VV.flash = 0; VV.order = null; renderVocab(); } },
+    [['all', '全部'], ['new', '未掌握'], ['rev', '需复习'], ['known', '已掌握']].map(([v, n]) => el('option', { value: v, text: n, selected: VV.status === v })));
+  const q = el('input', { type: 'search', placeholder: '搜索单词或中文', value: VV.q });
+  let t = null; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { VV.q = q.value.trim().toLowerCase(); VV.shown = 60; VV.flash = 0; VV.order = null; renderVocab(); }, 250); });
+  $('#subbar').hidden = false; $('#subbar').append(seg);
+  bar.append(cat, st, q);
+}
+function vocabList() {
+  const d = DATA.vocab;
+  return d.words.filter(w => (VV.mode !== 'spell' || w.mode === 'cloze') && (VV.cat === 'all' || w.category === VV.cat)
+    && (VV.status === 'all' || (VV.status === 'known' ? wst(w).known : VV.status === 'rev' ? wst(w).rev : !wst(w).known))
+    && (!VV.q || w.word.toLowerCase().includes(VV.q) || (w.meaning || '').includes(VV.q)));
+}
+function renderVocab() {
+  const main = $('#main'), list = vocabList(), d = DATA.vocab;
+  const known = d.words.filter(w => wst(w).known).length, rev = d.words.filter(w => wst(w).rev).length;
+  const meta = el('div', { class: 'meta' }, [el('span', { text: list.length + ' 个' }), el('span', { text: '已掌握 ' + known + ' · 需复习 ' + rev + ' / ' + d.words.length })]);
+  main.replaceChildren(meta);
+  if (!list.length) return main.append(el('p', { class: 'empty', text: '没有符合条件的单词。' }));
+  if (VV.mode === 'flash') return flashCard(main, list);
+  const card = el('div', { class: 'card' });
+  list.slice(0, VV.shown).forEach(w => card.append(VV.mode === 'spell' ? spellRow(w) : wordRow(w)));
+  main.append(card);
+  if (list.length > VV.shown) main.append(el('button', { class: 'more', text: '再显示 60 个（剩 ' + (list.length - VV.shown) + '）', onclick: e => { const y = window.scrollY; VV.shown += 60; renderVocab(); window.scrollTo(0, y); } }));
+}
+function statusBtns(w, row, after) {
+  const k = el('button', { class: 'wbtn' + (wst(w).known ? ' on' : ''), text: '✓ 掌握' });
+  const r = el('button', { class: 'wbtn rev' + (wst(w).rev ? ' on' : ''), text: '☆ 复习' });
+  k.onclick = e => { e.stopPropagation(); setW(w, { known: !wst(w).known, rev: wst(w).known ? wst(w).rev : false }); k.classList.toggle('on', !!wst(w).known); r.classList.toggle('on', !!wst(w).rev); row && row.classList.toggle('known', !!wst(w).known); after && after(); };
+  r.onclick = e => { e.stopPropagation(); setW(w, { rev: !wst(w).rev, known: wst(w).rev ? wst(w).known : false }); r.classList.toggle('on', !!wst(w).rev); k.classList.toggle('on', !!wst(w).known); row && row.classList.toggle('known', !!wst(w).known); after && after(); };
+  return [k, r];
+}
+function wordDetail(w) {
+  const box = el('div', { class: 'wdetail' });
+  if (w.example) box.append(el('p', {}, [document.createTextNode(w.example), w.translation ? el('div', { class: 'zh', text: w.translation }) : null]));
+  if (w.synonym) box.append(el('p', { text: '近义：' + w.synonym }));
+  if (w.forms && w.forms.length > 1) box.append(el('p', { text: '形式：' + w.forms.map(f => f.form + (f.grammar ? '（' + f.grammar + '）' : '')).join('、') }));
+  (w.refs || []).slice(0, 3).forEach(r => box.append(el('p', { class: 'zh', text: (r.articleTitle ? '《' + r.articleTitle + '》 ' : '') + (r.sourceAnalysis || '') })));
+  if (w.source) box.append(el('p', { class: 'same', text: '来源：' + w.source + (w.cefr ? ' · ' + w.cefr : '') }));
+  return box;
+}
+function wordRow(w) {
+  const row = el('div', { class: 'word-row' + (wst(w).known ? ' known' : '') });
+  let det = null;
+  row.append(el('div', { class: 'word-top', onclick: () => { if (det) { det.remove(); det = null; } else { det = wordDetail(w); row.append(det); } } },
+    [el('span', { class: 'w', text: w.word }), w.pos ? el('span', { class: 'pos', text: w.pos }) : null, el('span', { class: 'm', text: w.meaning || '' }), ...statusBtns(w, row)]));
+  return row;
+}
+function spellRow(w) {
+  const ref = (w.refs || [])[0] || {}, row = el('div', { class: 'word-row' });
+  const prefix = ref.answerPrefix || '', answer = (ref.answer || w.word), miss = answer.slice(prefix.length);
+  const ex = ref.example || w.example || '';
+  const p = ex.toLowerCase().indexOf(answer.toLowerCase());
+  const inp = el('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' }); inp.style.width = Math.max(2, miss.length + 1) * 0.62 + 'em';
+  const sentence = el('div', { class: 'fill-text' });
+  if (p >= 0) sentence.append(document.createTextNode(ex.slice(0, p)), el('span', { class: 'blank' }, [document.createTextNode(prefix), inp]), document.createTextNode(ex.slice(p + answer.length)));
+  else sentence.append(el('span', { class: 'blank' }, [document.createTextNode(prefix), inp]), el('div', { class: 'zh', text: ex }));
+  const res = el('div');
+  const check = el('button', { class: 'btn', text: '检查', onclick: () => {
+    const ok = inp.value.trim().toLowerCase() === miss.toLowerCase();
+    inp.classList.toggle('ok', ok); inp.classList.toggle('bad', !ok);
+    res.replaceChildren(el('div', { class: 'ansrow', html: (ok ? '✓ ' : '✗ ') + esc(prefix) + '<b>' + esc(miss) + '</b>　' + esc(w.meaning || '') + (ref.grammarHint ? '　<span class="zh">' + esc(ref.grammarHint) + '</span>' : '') }), wordDetail(w));
+    if (!ok && !wst(w).known) setW(w, { rev: true });
+  } });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') check.click(); });
+  row.append(el('div', { class: 'word-top' }, [el('span', { class: 'm', text: (w.meaning || '') + (ref.partOfSpeech ? ' · ' + ref.partOfSpeech : '') }), ...statusBtns(w, null)]), sentence,
+    el('div', { class: 'actions' }, [check, el('button', { class: 'btn gray', text: '看答案', onclick: () => { inp.value = miss; check.click(); } })]), res);
+  return row;
+}
+function flashCard(main, list) {
+  if (!VV.order || VV.order.length !== list.length) VV.order = pref('flash_random', true) ? shuffle(list.map((_, i) => i)) : list.map((_, i) => i);
+  VV.flash = Math.max(0, Math.min(VV.flash, list.length - 1));
+  const w = list[VV.order[VV.flash]], zhFirst = pref('flash_dir', 'en') === 'zh';
+  const face = el('div', { class: 'card flash', onclick: () => { VV.back = !VV.back; renderVocab(); } });
+  if (!VV.back) face.append(el('div', { class: 'big', text: zhFirst ? w.meaning : w.word }), el('div', { class: 'hint', text: '点卡片翻面' }));
+  else face.append(el('div', { class: 'big', text: zhFirst ? w.word : w.meaning }), el('div', { class: 'zh', text: (zhFirst ? w.meaning : w.word) + (w.pos ? ' · ' + w.pos : '') }), wordDetail(w));
+  const go = d => { VV.flash = Math.max(0, Math.min(list.length - 1, VV.flash + d)); VV.back = false; renderVocab(); };
+  const mark = patch => { setW(w, patch); VV.back = false; if (VV.status !== 'all') { VV.order = null; renderVocab(); } else go(1); };
+  main.append(face,
+    el('div', { class: 'actions', style: 'justify-content:center' }, [el('button', { class: 'btn gray', text: '✗ 不认识', onclick: () => mark({ rev: true, known: false }) }), el('button', { class: 'btn', text: '✓ 认识', onclick: () => mark({ known: true, rev: false }) })]),
+    el('div', { class: 'flash-nav', style: 'margin-top:12px' }, [el('button', { class: 'pill', text: '‹ 上一张', onclick: () => go(-1) }), el('span', { class: 'same', text: (VV.flash + 1) + ' / ' + list.length }), el('button', { class: 'pill', text: '下一张 ›', onclick: () => go(1) })]));
+}
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// ---------- settings / misc ----------
+function settings() {
+  const row = (label, ctl) => el('div', { class: 'set-row' }, [el('div', { text: label }), ctl]);
+  const seg = (vals, cur, on) => { const s = el('div', { class: 'seg' }); vals.forEach(([v, n]) => s.append(el('button', { class: String(v) === String(cur) ? 'on' : '', text: n, onclick: () => { on(v); s.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.textContent === n)); } }))); return s; };
+  const mask = el('div', { class: 'mask', onclick: () => close() });
+  const sheet = el('div', { class: 'sheet' }, [el('div', { class: 'sheet-head' }, [el('b', { text: '设置' }), el('button', { text: '✕', onclick: () => close() })]),
+    el('div', { class: 'set' }, [
+      row('字号', seg([[14, '小'], [16, '中'], [18, '大'], [20, '特大']], pref('fs', 16), v => { setPref('fs', v); applyFont(); })),
+      row('题目和原文的中文', seg([[true, '显示'], [false, '不显示']], pref('zh', true), v => { setPref('zh', v); changed = true; })),
+      row('听力播放速度', seg([[0.8, '0.8x'], [1, '1x'], [1.25, '1.25x']], pref('rate', 1), v => { setPref('rate', v); audio.playbackRate = v; })),
+      row('闪卡正面', seg([['en', '英文'], ['zh', '中文']], pref('flash_dir', 'en'), v => { setPref('flash_dir', v); changed = true; })),
+      row('闪卡顺序', seg([[true, '随机'], [false, '原顺序']], pref('flash_random', true), v => { setPref('flash_random', v); VV.order = null; changed = true; }))
+    ]),
+    el('p', { class: 'same', text: '做题记录、收藏、单词状态存在这台手机的浏览器里。音频和图片在线加载，需要联网。' })]);
+  let changed = false;
+  function close() { mask.remove(); sheet.remove(); if (changed) render(); }
+  document.body.append(mask, sheet);
+}
+$('#gear').onclick = settings; $('#pSet').onclick = settings;
+function lightbox(src) { const b = el('div', { class: 'lightbox', onclick: () => b.remove() }, [el('img', { src })]); document.body.append(b); }
+document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => { tab = b.dataset.tab; setPref('tab', tab); render(); });
+const backTop = $('#backTop');
+backTop.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+window.addEventListener('scroll', () => { backTop.hidden = window.scrollY < 800; }, { passive: true });
+if (!SECTIONS[tab]) tab = 'reading';
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
